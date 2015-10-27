@@ -1,0 +1,9 @@
+npm-debug.log
+config/runtime.json
+node_modules/*
+*.swp
+.vagrant
+.idea
+.DS_Store
+*.iml
+coverage.html
