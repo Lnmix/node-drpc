@@ -42,38 +42,31 @@ NodeDRPCClient.prototype = {};
 
 NodeDRPCClient.prototype.execute = function(drpcFunction, drpcFunctionParam, callback ) {
 
-   var connection;
+  var connection,
+    timeout = this.timeout;
 
-   if (!callback) {
-      if (typeof(obj) !== 'function') {   
-             throw new Error("NodeDRPCClient initialization error ! Callback must be a function.");
-      }
-   }
+  if (typeof(callback) !== 'function') {
+    throw new Error("NodeDRPCClient initialization error ! Callback must be a function.");
+  }
 
-   if (this.timeout) {
-      connection = thrift.createConnection(this.hostName, this.portNo, this.timeout);
-   } else {
-      connection = thrift.createConnection(this.hostName, this.portNo);
-   }
 
-   var  client = thrift.createClient(DistributedRPC, connection);
+  connection = thrift.createConnection(this.hostName, this.portNo, { timeout: timeout });
 
-   connection.on('error', function(err) {
-      
-        if (callback) {
-           callback(err);
-        }
-   });
-  
-   client.execute(drpcFunction, drpcFunctionParam, function(err, response) {
- 
-      
-       if (callback) {
-         callback(err, response); 
-       }
-       connection.end();
-   });
- 
+  var  client = thrift.createClient(DistributedRPC, connection);
+
+  connection.on('error', function(err) {
+    if (callback) {
+     callback(err);
+    }
+  });
+
+  client.execute(drpcFunction, drpcFunctionParam, function(err, response) {
+    if (callback) {
+      callback(err, response);
+    }
+    connection.end();
+  });
+
 }
 
 module.exports = NodeDRPCClient;
