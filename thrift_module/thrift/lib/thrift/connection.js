@@ -34,11 +34,11 @@ var Connection = exports.Connection = function(stream, options) {
   this.protocol = this.options.protocol || tprotocol.TBinaryProtocol;
   this.offline_queue = [];
   this.connected = false;
-
+  this.connection.setTimeout(self.options.timeout || 0);
   this.connection.addListener("connect", function() {
     self.connected = true;
 
-    this.setTimeout(self.options.timeout || 0);
+
     this.setNoDelay();
     this.frameLeft = 0;
     this.framePos = 0;
@@ -66,7 +66,7 @@ var Connection = exports.Connection = function(stream, options) {
   });
 
   this.connection.addListener("timeout", function() {
-    self.emit("timeout");
+    self.emit("error", new Error("Connection Timeout: " + self.options.timeout));
   });
 
   this.connection.addListener("data", self.transport.receiver(function(transport_with_data) {
@@ -212,7 +212,7 @@ var StdIOConnection = exports.StdIOConnection = function(command, options) {
 
 };
 
-util.inherits(StdIOConnection, EventEmitter);     
+util.inherits(StdIOConnection, EventEmitter);
 
 StdIOConnection.prototype.end = function() {
   this.connection.end();
