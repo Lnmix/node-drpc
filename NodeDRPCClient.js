@@ -5,9 +5,9 @@ http://opensource.org/licenses/MIT
 */
 
 
-var thrift = require('./thrift_module/thrift/lib/thrift');
-//var thrift = require('thrift');
-
+var thrift = require('./thrift_module/thrift/lib/thrift'),
+  connection,
+  client;
 
 var DistributedRPC = require('./lib/DistributedRPC.js'),
     ttypes = require('./lib/storm_types.js');
@@ -41,32 +41,25 @@ NodeDRPCClient.prototype = {};
 
 
 NodeDRPCClient.prototype.execute = function(drpcFunction, drpcFunctionParam, callback ) {
-
-  var connection,
-    timeout = this.timeout;
-
   if (typeof(callback) !== 'function') {
     throw new Error("NodeDRPCClient initialization error ! Callback must be a function.");
   }
 
+  if (!connection) {
+    connection = thrift.createConnection(this.hostName, this.portNo, this.timeout);
+    client = thrift.createClient(DistributedRPC, connection);
+    connection.on('error', function(err) {
+      callback(err);
+      connection.end();
+      connection = null;
+    });
 
-  connection = thrift.createConnection(this.hostName, this.portNo, { timeout: timeout });
+    connection.on('close', function() {
+      connection = null;
+    });
+  }
 
-  var  client = thrift.createClient(DistributedRPC, connection);
-
-  connection.on('error', function(err) {
-    if (callback) {
-     callback(err);
-    }
-  });
-
-  client.execute(drpcFunction, drpcFunctionParam, function(err, response) {
-    if (callback) {
-      callback(err, response);
-    }
-    connection.end();
-  });
-
+  client.execute(drpcFunction, drpcFunctionParam, callback);
 }
 
 module.exports = NodeDRPCClient;
