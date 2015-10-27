@@ -7,7 +7,8 @@ http://opensource.org/licenses/MIT
 
 var thrift = require('./thrift_module/thrift/lib/thrift'),
   connection,
-  client;
+  client,
+  thriftPool = require('node-thrift-pool');
 
 var DistributedRPC = require('./lib/DistributedRPC.js'),
     ttypes = require('./lib/storm_types.js');
@@ -45,18 +46,8 @@ NodeDRPCClient.prototype.execute = function(drpcFunction, drpcFunctionParam, cal
     throw new Error("NodeDRPCClient initialization error ! Callback must be a function.");
   }
 
-  if (!connection) {
-    connection = thrift.createConnection(this.hostName, this.portNo, this.timeout);
-    client = thrift.createClient(DistributedRPC, connection);
-    connection.on('error', function(err) {
-      callback(err);
-      connection.end();
-      connection = null;
-    });
-
-    connection.on('close', function() {
-      connection = null;
-    });
+  if (!client) {
+    client = thriftPool(thrift, DistributedRPC, {host: this.hostName, port: this.portNo});
   }
 
   client.execute(drpcFunction, drpcFunctionParam, callback);
