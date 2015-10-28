@@ -13,7 +13,7 @@ var thrift = require('./thrift_module/thrift/lib/thrift'),
 var DistributedRPC = require('./lib/DistributedRPC.js'),
     ttypes = require('./lib/storm_types.js');
 
-function NodeDRPCClient (hostName, portNo, timeout) {
+function NodeDRPCClient (hostName, portNo) {
 
  if (!hostName || !portNo) {
     throw new Error("NodeDRPCClient initialization error ! Hostname and Port number must be specified.");
@@ -29,13 +29,8 @@ function NodeDRPCClient (hostName, portNo, timeout) {
     throw new Error("NodeDRPCClient initialization error ! PortNo must be a integer.");
  }
 
- if ( timeout != null && typeof(timeout) !==  'number') {
-    throw new Error("NodeDRPCClient initialization error ! Timeout must be a integer.");
- }
-
  this.hostName = hostName;
  this.portNo = portNo;
- this.timeout = timeout;
 }
 
 NodeDRPCClient.prototype = {};
